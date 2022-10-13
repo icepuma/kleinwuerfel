@@ -183,7 +183,8 @@ imageRegistry:
 
         if let Some(namespace) = String::from_utf8(namespace_output.stdout)?
             .split_whitespace()
-            .collect::<Vec<&str>>().first()
+            .collect::<Vec<&str>>()
+            .first()
         {
             let service_output = Command::new(&kubectl)
             .stdout(Stdio::piped())
@@ -199,7 +200,8 @@ imageRegistry:
 
             if let Some(service) = String::from_utf8(service_output.stdout)?
                 .split_whitespace()
-                .collect::<Vec<&str>>().first()
+                .collect::<Vec<&str>>()
+                .first()
             {
                 Command::new(&kubectl)
                     .arg("port-forward")
