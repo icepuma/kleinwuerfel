@@ -5,7 +5,7 @@
 ![https://crates.io/crates/kleinwuerfel](https://img.shields.io/crates/v/kleinwuerfel)
 ![https://github.com/icepuma/kleinwuerfel/actions/workflows/ci.yaml](https://github.com/icepuma/kleinwuerfel/actions/workflows/ci.yaml/badge.svg)
 
-Interact with track.toggl.com via terminal.
+Opinionated command line tool to interact with minikube. An easy way to deploy a given set of helm charts.
 
 [Installation](#installation) •
 [Usage](#usage)
