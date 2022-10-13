@@ -7,6 +7,8 @@
 
 Opinionated command line tool to interact with [minikube](https://github.com/kubernetes/minikube). An easy way to deploy a given set of helm charts.
 
+"kleinwuerfel" means more or less "minikube" in German.
+
 [Installation](#installation) •
 [Usage](#usage)
 
