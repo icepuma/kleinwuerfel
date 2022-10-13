@@ -59,3 +59,8 @@ kleinwuerfel start
 ```bash
 kleinwuerfel stop
 ```
+
+## Ideas
+* Port forwarding for individual helm charts
+* Better error handling
+* More testing
