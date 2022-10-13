@@ -1,0 +1,25 @@
+[minikube]
+cpus = 4
+memory = 8192
+
+[[registry]]
+name = "qhcr"
+url = "dpdhl.css-qhcr-pi.azure.deutschepost.de"
+helm_repo_url = "https://dpdhl.css-qhcr-pi.azure.deutschepost.de/chartrepo"
+username = "${env.HARBOR_QHCR_USERNAME}"
+password = "${env.HARBOR_QHCR_SECRET}"
+
+[[helmchart]]
+name = "fake-acme-server"
+registry = "qhcr"
+repo = "sdb-test"
+
+[[helmchart]]
+name = "secretmanagement-mocks"
+registry = "qhcr"
+repo = "sdb-test"
+
+[[helmchart]]
+name = "secretmanagement"
+registry = "qhcr"
+repo = "sdb-test"

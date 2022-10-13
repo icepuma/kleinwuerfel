@@ -1,0 +1,31 @@
+[package]
+name = "kleinwuerfel"
+version = "0.1.0"
+edition = "2021"
+authors = ["Stefan Ruzitschka <stefan@icepuma.dev>"]
+description = "Tool interact with minikube and deploy a set of helm charts."
+keywords = ["minikube", "helm", "helmchart", "cli", "productivity"]
+repository = "https://github.com/icepuma/kleinwuerfel"
+readme = "README.md"
+license = "WTFPL"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4", features = [
+    "deprecated",
+    "derive",
+    "suggestions",
+    "color",
+    "env",
+    "unicode",
+    "wrap_help",
+] }
+toml = "0"
+serde_derive = "1"
+serde = "1"
+anyhow = "1"
+which = "4"
+lazy_static = "1"
+regex = "1"
+tempfile = "3"
