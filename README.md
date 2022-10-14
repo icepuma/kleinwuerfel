@@ -53,13 +53,17 @@ repo = "some-different-chart-repo"
 ```
 
 ### Start (start minikube and deploy helm charts)
+* If `minikube status` exits with `0`, we assume that it is already running and skip the `minikube start` part
+
 ```bash
 kleinwuerfel start
 ```
 
-### Stop (stops minikube)
+### Cleanup
+* Calls `minikube delete` right now
+
 ```bash
-kleinwuerfel stop
+kleinwuerfel cleanup
 ```
 
 ## Ideas

@@ -15,6 +15,6 @@ pub enum SubCommand {
     /// Start with all services
     Start,
 
-    /// Stop
-    Stop,
+    /// Cleanup all the things
+    Cleanup,
 }

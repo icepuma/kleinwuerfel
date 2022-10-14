@@ -1,13 +1,12 @@
-use std::{
-    io::Write,
-    process::{Command, Stdio},
-};
+use std::process::{Command, Stdio};
 
-use crate::model::{Helmchart, Minikube, Registry};
+use crate::{
+    helm::Helm,
+    model::{Configuration, Helmchart, Minikube, Registry},
+};
 use anyhow::Ok;
 use lazy_static::lazy_static;
 use regex::Regex;
-use tempfile::NamedTempFile;
 use which::which;
 
 pub struct Orchestrator {
@@ -19,8 +18,10 @@ lazy_static! {
 }
 
 impl Orchestrator {
-    pub fn new(minikube: Option<Minikube>) -> Orchestrator {
-        Orchestrator { minikube }
+    pub fn new(configuration: &Configuration) -> Orchestrator {
+        Orchestrator {
+            minikube: configuration.minikube.as_ref().cloned(),
+        }
     }
 
     pub fn start(&self) -> anyhow::Result<()> {
@@ -66,10 +67,10 @@ impl Orchestrator {
         Ok(())
     }
 
-    pub fn stop(&self) -> anyhow::Result<()> {
+    pub fn cleanup(&self) -> anyhow::Result<()> {
         let minikube = which("minikube")?;
 
-        Command::new(minikube).arg("stop").spawn()?.wait()?;
+        Command::new(minikube).arg("delete").spawn()?.wait()?;
 
         Ok(())
     }
@@ -126,51 +127,14 @@ impl Orchestrator {
                 )
             })?;
 
-        let helm = which("helm")?;
-
         let username = self.replace_with_env_var(&registry.username)?;
         let password = self.replace_with_env_var(&registry.password)?;
 
-        Command::new(&helm)
-            .arg("repo")
-            .arg("add")
-            .arg("--username")
-            .arg(&username)
-            .arg("--password")
-            .arg(&password)
-            .arg(&helmchart.repo)
-            .arg(format!("{}/{}", registry.helm_repo_url, helmchart.repo))
-            .spawn()?
-            .wait()?;
+        let helm = Helm::new(username, password);
 
-        let mut config_file = NamedTempFile::new()?;
-
-        let config_file_content = format!(
-            r###"
-environment:
-    local: true
-imageRegistry:
-    username: '{}'
-    password: '{}'"###,
-            &username, &password
-        );
-
-        config_file.write_all(config_file_content.as_bytes())?;
-
-        Command::new(&helm)
-            .arg("upgrade")
-            .arg("--install")
-            .arg("--username")
-            .arg(&username)
-            .arg("--password")
-            .arg(&password)
-            .arg(&helmchart.name)
-            .arg(format!("{}/{}", helmchart.repo, helmchart.name))
-            .arg("-f")
-            .arg(config_file.path())
-            .arg("--wait")
-            .spawn()?
-            .wait()?;
+        helm.login(&registry.helm_repo_url)?; // TODO: login only once per registry
+        helm.add_repo(&helmchart.repo, &registry.helm_repo_url)?;
+        helm.upgrade(&helmchart.repo, &helmchart.name)?;
 
         if !helmchart.ports.is_empty() {
             //self.port_forward(&helmchart)?;

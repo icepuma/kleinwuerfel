@@ -19,7 +19,7 @@ pub struct Helmchart {
     pub ports: Vec<u16>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Minikube {
     pub cpus: Option<u8>,
     pub memory: Option<u16>,

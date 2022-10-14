@@ -6,6 +6,7 @@ use cli::{Options, SubCommand};
 use crate::{model::Configuration, orchestrator::Orchestrator};
 
 mod cli;
+mod helm;
 mod model;
 mod orchestrator;
 
@@ -20,7 +21,7 @@ fn main() -> anyhow::Result<()> {
 
     let configuration = toml::from_str::<Configuration>(&content)?;
 
-    let orchestrator = Orchestrator::new(configuration.minikube);
+    let orchestrator = Orchestrator::new(&configuration);
 
     match options.subcommand {
         SubCommand::Start => {
@@ -38,8 +39,8 @@ fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        SubCommand::Stop => {
-            orchestrator.stop()?;
+        SubCommand::Cleanup => {
+            orchestrator.cleanup()?;
         }
     }
 
