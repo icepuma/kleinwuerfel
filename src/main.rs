@@ -56,11 +56,12 @@ fn main() -> anyhow::Result<()> {
 
             println!();
 
-            let registries = configuration.registry.unwrap_or_default();
+            let registries = configuration.container_registry.unwrap_or_default();
+            let helm_chart_repos = configuration.helm_chart_repo.unwrap_or_default();
 
             if let Some(helmcharts) = configuration.helmchart {
                 for helm_chart in helmcharts {
-                    orchestrator.deploy(&helm_chart, &registries)?;
+                    orchestrator.deploy(&helm_chart, &registries, &helm_chart_repos)?;
                 }
             }
 

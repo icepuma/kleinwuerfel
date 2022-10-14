@@ -4,7 +4,7 @@ use crate::{
     helm::Helm,
     kubectl::Kubectl,
     minikube::Minikube,
-    model::{Configuration, Helmchart, Registry},
+    model::{Configuration, ContainerRegistry, HelmChartRepo, Helmchart},
 };
 use anyhow::Ok;
 use colored::Colorize;
@@ -79,7 +79,12 @@ impl Orchestrator {
         Ok(env_var)
     }
 
-    pub fn deploy(&self, helmchart: &Helmchart, registries: &[Registry]) -> anyhow::Result<()> {
+    pub fn deploy(
+        &self,
+        helmchart: &Helmchart,
+        container_registries: &[ContainerRegistry],
+        helm_chart_repos: &[HelmChartRepo],
+    ) -> anyhow::Result<()> {
         println!(
             "{}",
             format!("Deploy helm chart '{}'", &helmchart.name)
@@ -87,24 +92,45 @@ impl Orchestrator {
                 .underline()
         );
 
-        let registry = registries
+        let container_registry = container_registries
             .iter()
-            .find(|registry| registry.name == helmchart.registry)
+            .find(|registry| registry.name == helmchart.container_registry)
             .ok_or_else(|| {
                 anyhow::anyhow!(
-                    "Registry '{}' not specified in config file. Please provide one.",
-                    helmchart.registry
+                    "Container registry '{}' not specified in config file. Please provide one.",
+                    helmchart.container_registry
                 )
             })?;
 
-        let username = self.replace_with_env_var(&registry.username)?;
-        let password = self.replace_with_env_var(&registry.password)?;
+        let helm_chart_repo = helm_chart_repos
+            .iter()
+            .find(|helm_chart_repo| helm_chart_repo.name == helmchart.helm_chart_repo)
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Helm chart repo '{}' not specified in config file. Please provide one.",
+                    helmchart.container_registry
+                )
+            })?;
 
-        let helm = Helm::new(username, password, &self.helm_binary_path);
+        let helm_chart_repo_username = self.replace_with_env_var(&helm_chart_repo.username)?;
+        let helm_chart_repo_password = self.replace_with_env_var(&helm_chart_repo.password)?;
+
+        let container_registry_username =
+            self.replace_with_env_var(&container_registry.username)?;
+        let container_registry_password =
+            self.replace_with_env_var(&container_registry.password)?;
+
+        let helm = Helm::new(
+            helm_chart_repo_username,
+            helm_chart_repo_password,
+            container_registry_username,
+            container_registry_password,
+            &self.helm_binary_path,
+        );
 
         // Login failed
-        if !helm.login(&registry.helm_repo_url)? {
-            let relogin_url = Url::parse(&registry.helm_repo_url)?;
+        if !helm.login(&helm_chart_repo.url)? {
+            let relogin_url = Url::parse(&helm_chart_repo.url)?;
 
             println!(
                 r###"Cannot login to helm repo '{}'. Skip further deployment:
@@ -114,7 +140,7 @@ e.g. Harbor in combination with OIDC providers forces you to relogin to have val
 
 Maybe {} is the URL where you can relogin.
 "###,
-                &registry.helm_repo_url,
+                &helm_chart_repo.url,
                 &format!(
                     "{}://{}",
                     &relogin_url.scheme(),
@@ -122,7 +148,7 @@ Maybe {} is the URL where you can relogin.
                 ),
             );
         } else {
-            helm.add_repo(&helmchart.repo, &registry.helm_repo_url)?;
+            helm.add_repo(&helmchart.repo, &helm_chart_repo.url)?;
             helm.upgrade(&helmchart.repo, &helmchart.name)?;
 
             if !helmchart.ports.is_empty() {

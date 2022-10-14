@@ -29,26 +29,34 @@ Opinionated command line tool to interact with [minikube](https://github.com/kub
 cpus = 4
 memory = 8192
 
-[[registry]]
+[[container_registry]]
 name = "registry-1"
 url = "some.registry.url"
-helm_repo_url = "some.registry.url/chartrepo"
+username = "${env.HARBOR_USERNAME}"
+password = "${env.HARBOR_SECRET}"
+
+[[helm_chart_repo]]
+name = "helm-chart-repo-1"
+url = "some.registry.url/chartrepo"
 username = "${env.HARBOR_USERNAME}"
 password = "${env.HARBOR_SECRET}"
 
 [[helmchart]]
 name = "helm-chart-1"
-registry = "registry-1"
+container_registry = "registry-1"
+helm_chart_repo = "helm-chart-repo-1"
 repo = "chart-repo"
 
 [[helmchart]]
 name = "helm-chart-2"
-registry = "registry-1"
+container_registry = "registry-1"
+helm_chart_repo = "helm-chart-repo-1"
 repo = "chart-repo"
 
 [[helmchart]]
 name = "helm-chart-3"
-registry = "registry-1"
+container_registry = "registry-1"
+helm_chart_repo = "helm-chart-repo-1"
 repo = "some-different-chart-repo"
 ```
 

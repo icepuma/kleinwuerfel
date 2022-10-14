@@ -1,10 +1,17 @@
 use serde_derive::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Registry {
+pub struct ContainerRegistry {
     pub name: String,
     pub url: String,
-    pub helm_repo_url: String,
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct HelmChartRepo {
+    pub name: String,
+    pub url: String,
     pub username: String,
     pub password: String,
 }
@@ -12,7 +19,8 @@ pub struct Registry {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Helmchart {
     pub name: String,
-    pub registry: String,
+    pub container_registry: String,
+    pub helm_chart_repo: String,
     pub repo: String,
 
     #[serde(default)]
@@ -31,6 +39,7 @@ pub struct Minikube {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Configuration {
     pub minikube: Option<Minikube>,
-    pub registry: Option<Vec<Registry>>,
+    pub container_registry: Option<Vec<ContainerRegistry>>,
+    pub helm_chart_repo: Option<Vec<HelmChartRepo>>,
     pub helmchart: Option<Vec<Helmchart>>,
 }

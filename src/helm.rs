@@ -8,16 +8,26 @@ use tempfile::NamedTempFile;
 use which::which;
 
 pub struct Helm {
-    username: String,
-    password: String,
+    helm_chart_repo_username: String,
+    helm_chart_repo_password: String,
+    container_registry_username: String,
+    container_registry_password: String,
     helm_binary_path: PathBuf,
 }
 
 impl Helm {
-    pub fn new(username: String, password: String, helm_binary_path: &PathBuf) -> Self {
+    pub fn new(
+        helm_chart_repo_username: String,
+        helm_chart_repo_password: String,
+        container_registry_username: String,
+        container_registry_password: String,
+        helm_binary_path: &PathBuf,
+    ) -> Self {
         Helm {
-            username,
-            password,
+            helm_chart_repo_username,
+            helm_chart_repo_password,
+            container_registry_username,
+            container_registry_password,
             helm_binary_path: helm_binary_path.to_owned(),
         }
     }
@@ -30,9 +40,9 @@ impl Helm {
             .arg("login")
             .arg(&helm_repo_url)
             .arg("--username")
-            .arg(&self.username)
+            .arg(&self.helm_chart_repo_username)
             .arg("--password")
-            .arg(&self.password)
+            .arg(&self.helm_chart_repo_password)
             .spawn()?
             .wait_with_output()?;
 
@@ -44,9 +54,9 @@ impl Helm {
             .arg("repo")
             .arg("add")
             .arg("--username")
-            .arg(&self.username)
+            .arg(&self.helm_chart_repo_username)
             .arg("--password")
-            .arg(&self.password)
+            .arg(&self.helm_chart_repo_password)
             .arg(&chart_repo)
             .arg(format!("{}/{}", &helm_repo_url, &chart_repo))
             .spawn()?
@@ -65,7 +75,7 @@ environment:
 imageRegistry:
     username: '{}'
     password: '{}'"###,
-            &self.username, &self.password
+            &self.container_registry_username, &self.container_registry_password
         );
 
         config_file.write_all(config_file_content.as_bytes())?;
@@ -74,9 +84,9 @@ imageRegistry:
             .arg("upgrade")
             .arg("--install")
             .arg("--username")
-            .arg(&self.username)
+            .arg(&self.helm_chart_repo_username)
             .arg("--password")
-            .arg(&self.password)
+            .arg(&self.helm_chart_repo_password)
             .arg(&chart_name)
             .arg(format!("{}/{}", &chart_repo, &chart_name))
             .arg("-f")
