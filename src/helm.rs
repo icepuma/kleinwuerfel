@@ -79,4 +79,12 @@ imageRegistry:
 
         Ok(())
     }
+
+    pub fn list() -> anyhow::Result<()> {
+        let helm_binary = which("helm")?;
+
+        Command::new(&helm_binary).arg("list").spawn()?.wait()?;
+
+        Ok(())
+    }
 }

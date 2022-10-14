@@ -4,7 +4,7 @@ use clap::Parser;
 use cli::{Options, SubCommand};
 use colored::Colorize;
 
-use crate::{model::Configuration, orchestrator::Orchestrator};
+use crate::{helm::Helm, model::Configuration, orchestrator::Orchestrator};
 
 mod cli;
 mod helm;
@@ -43,6 +43,10 @@ fn main() -> anyhow::Result<()> {
                     orchestrator.deploy(&helm_chart, &registries)?;
                 }
             }
+
+            println!("{}", "Deployed helm charts".bold().underline());
+
+            Helm::list()?;
         }
         SubCommand::Cleanup => {
             orchestrator.cleanup()?;
