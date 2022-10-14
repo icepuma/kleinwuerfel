@@ -9,6 +9,7 @@ use crate::{helm::Helm, model::Configuration, orchestrator::Orchestrator};
 
 mod cli;
 mod helm;
+mod kubectl;
 mod minikube;
 mod model;
 mod orchestrator;
