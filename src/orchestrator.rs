@@ -106,7 +106,7 @@ impl Orchestrator {
 
         let env_var = std::env::var(&env_var_name).map_err(|_| {
             anyhow::anyhow!(
-                "The env var '{}' is not defined, please provide it via 'export {}=\"<>\"'",
+                "The env var '{}' is not defined, please provide it via 'export {}=\"<your-desired-value>\"'",
                 &env_var_name,
                 &env_var_name
             )
