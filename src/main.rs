@@ -12,7 +12,12 @@ mod orchestrator;
 fn main() -> anyhow::Result<()> {
     let options = Options::parse();
 
-    let content = fs::read_to_string(options.config)?;
+    let content = fs::read_to_string(options.config).map_err(|_| {
+        anyhow::anyhow!(
+            "Can't read config file. Please provide a proper location, like ./kleinwuerfel.toml"
+        )
+    })?;
+
     let configuration = toml::from_str::<Configuration>(&content)?;
 
     let orchestrator = Orchestrator::new(configuration.minikube);

@@ -86,7 +86,7 @@ impl Orchestrator {
         Ok(status.status.success())
     }
 
-    fn replace_with_env_var(&self, input: &str) -> anyhow::Result<String> {
+    fn extract_env_var_name(&self, input: &str) -> anyhow::Result<String> {
         let env_var_name = ENV_VAR_REGEX
             .captures(input)
             .and_then(|capture| {
@@ -94,9 +94,23 @@ impl Orchestrator {
                     .name("env_var")
                     .map(|env_var| env_var.as_str().to_string())
             })
-            .ok_or_else(|| anyhow::anyhow!("lel"))?;
+            .ok_or_else(|| {
+                anyhow::anyhow!("Reading env var name from input='{}' didn't work.", input)
+            })?;
 
-        let env_var = std::env::var(env_var_name)?;
+        Ok(env_var_name)
+    }
+
+    fn replace_with_env_var(&self, input: &str) -> anyhow::Result<String> {
+        let env_var_name = self.extract_env_var_name(input)?;
+
+        let env_var = std::env::var(&env_var_name).map_err(|_| {
+            anyhow::anyhow!(
+                "The env var '{}' is not defined, please provide it via 'export {}=\"<>\"'",
+                &env_var_name,
+                &env_var_name
+            )
+        })?;
 
         Ok(env_var)
     }
@@ -105,7 +119,12 @@ impl Orchestrator {
         let registry = registries
             .iter()
             .find(|registry| registry.name == helmchart.registry)
-            .ok_or_else(|| anyhow::anyhow!("Registry {} not available.", helmchart.registry))?;
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Registry '{}' not specified in config file. Please provide one.",
+                    helmchart.registry
+                )
+            })?;
 
         let helm = which("helm")?;
 
