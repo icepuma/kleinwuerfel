@@ -1,4 +1,7 @@
-use std::process::{Command, Stdio};
+use std::{
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 
 use crate::{
     helm::Helm,
@@ -9,10 +12,12 @@ use colored::Colorize;
 use lazy_static::lazy_static;
 use regex::Regex;
 use url::Url;
-use which::which;
 
 pub struct Orchestrator {
     minikube: Option<Minikube>,
+    minikube_binary_path: PathBuf,
+    helm_binary_path: PathBuf,
+    kubectl_binary_path: PathBuf,
 }
 
 lazy_static! {
@@ -20,15 +25,21 @@ lazy_static! {
 }
 
 impl Orchestrator {
-    pub fn new(configuration: &Configuration) -> Orchestrator {
+    pub fn new(
+        configuration: &Configuration,
+        minikube_binary_path: PathBuf,
+        helm_binary_path: PathBuf,
+        kubectl_binary_path: PathBuf,
+    ) -> Orchestrator {
         Orchestrator {
             minikube: configuration.minikube.as_ref().cloned(),
+            minikube_binary_path,
+            helm_binary_path,
+            kubectl_binary_path,
         }
     }
 
     pub fn start(&self) -> anyhow::Result<()> {
-        let minikube = which("minikube")?;
-
         let mut arguments: Vec<String> = vec![];
         arguments.push("start".to_string());
 
@@ -53,11 +64,14 @@ impl Orchestrator {
             arguments.push("8192".to_string());
         }
 
-        Command::new(&minikube).args(&arguments).spawn()?.wait()?;
+        Command::new(&self.minikube_binary_path)
+            .args(&arguments)
+            .spawn()?
+            .wait()?;
 
         if let Some(minikube_config) = &self.minikube {
             for addon in &minikube_config.addons {
-                Command::new(&minikube)
+                Command::new(&self.minikube_binary_path)
                     .arg("addons")
                     .arg("enable")
                     .arg(addon)
@@ -70,16 +84,16 @@ impl Orchestrator {
     }
 
     pub fn cleanup(&self) -> anyhow::Result<()> {
-        let minikube = which("minikube")?;
-
-        Command::new(minikube).arg("delete").spawn()?.wait()?;
+        Command::new(&self.minikube_binary_path)
+            .arg("delete")
+            .spawn()?
+            .wait()?;
 
         Ok(())
     }
 
     pub fn is_running(&self) -> anyhow::Result<bool> {
-        let minikube = which("minikube")?;
-        let status = Command::new(minikube)
+        let status = Command::new(&self.minikube_binary_path)
             .arg("status")
             .stdout(Stdio::null())
             .stderr(Stdio::null())
@@ -139,7 +153,7 @@ impl Orchestrator {
         let username = self.replace_with_env_var(&registry.username)?;
         let password = self.replace_with_env_var(&registry.password)?;
 
-        let helm = Helm::new(username, password);
+        let helm = Helm::new(username, password, &self.helm_binary_path);
 
         // Login failed
         if !helm.login(&registry.helm_repo_url)? {
@@ -183,9 +197,7 @@ Maybe {} is the URL where you can relogin.
             return Ok(());
         }
 
-        let kubectl = which("kubectl")?;
-
-        let namespace_output = Command::new(&kubectl)
+        let namespace_output = Command::new(&self.kubectl_binary_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .arg("get")
@@ -200,7 +212,7 @@ Maybe {} is the URL where you can relogin.
             .collect::<Vec<&str>>()
             .first()
         {
-            let service_output = Command::new(&kubectl)
+            let service_output = Command::new(&self.kubectl_binary_path)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .arg("--namespace")
@@ -217,7 +229,7 @@ Maybe {} is the URL where you can relogin.
                 .collect::<Vec<&str>>()
                 .first()
             {
-                Command::new(&kubectl)
+                Command::new(&self.kubectl_binary_path)
                     .arg("port-forward")
                     .arg("--namespace")
                     .arg(&namespace)
