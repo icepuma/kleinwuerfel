@@ -1,4 +1,7 @@
-use std::{io::Write, process::Command};
+use std::{
+    io::Write,
+    process::{Command, Stdio},
+};
 
 use tempfile::NamedTempFile;
 use which::which;
@@ -13,10 +16,12 @@ impl Helm {
         Helm { username, password }
     }
 
-    pub fn login(&self, helm_repo_url: &String) -> anyhow::Result<()> {
+    pub fn login(&self, helm_repo_url: &String) -> anyhow::Result<bool> {
         let helm_binary = which("helm")?;
 
-        Command::new(&helm_binary)
+        let status = Command::new(&helm_binary)
+            .stderr(Stdio::null())
+            .stdout(Stdio::null())
             .arg("registry")
             .arg("login")
             .arg(&helm_repo_url)
@@ -25,9 +30,9 @@ impl Helm {
             .arg("--password")
             .arg(&self.password)
             .spawn()?
-            .wait()?;
+            .wait_with_output()?;
 
-        Ok(())
+        Ok(status.status.success())
     }
 
     pub fn add_repo(&self, chart_repo: &String, helm_repo_url: &String) -> anyhow::Result<()> {

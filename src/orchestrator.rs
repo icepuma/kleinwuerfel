@@ -132,15 +132,24 @@ impl Orchestrator {
 
         let helm = Helm::new(username, password);
 
-        helm.login(&registry.helm_repo_url)?; // TODO: login only once per registry
-        helm.add_repo(&helmchart.repo, &registry.helm_repo_url)?;
-        helm.upgrade(&helmchart.repo, &helmchart.name)?;
-
-        if !helmchart.ports.is_empty() {
-            //self.port_forward(&helmchart)?;
+        // Login failed
+        if !helm.login(&registry.helm_repo_url)? {
             println!(
-                "Port forwarding is currently disabled, but will be part of a future release!"
+                r###"Cannot login to helm repo '{}'.
+e.g. Harbor in combination with OIDC providers forces you to relogin to have valid credentials.
+Skip further deployment..."###,
+                &registry.helm_repo_url
             );
+        } else {
+            helm.add_repo(&helmchart.repo, &registry.helm_repo_url)?;
+            helm.upgrade(&helmchart.repo, &helmchart.name)?;
+
+            if !helmchart.ports.is_empty() {
+                //self.port_forward(&helmchart)?;
+                println!(
+                    "Port forwarding is currently disabled, but will be part of a future release!"
+                );
+            }
         }
 
         Ok(())
