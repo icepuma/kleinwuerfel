@@ -5,6 +5,7 @@ use crate::{
     model::{Configuration, Helmchart, Minikube, Registry},
 };
 use anyhow::Ok;
+use colored::Colorize;
 use lazy_static::lazy_static;
 use regex::Regex;
 use which::which;
@@ -117,6 +118,13 @@ impl Orchestrator {
     }
 
     pub fn deploy(&self, helmchart: &Helmchart, registries: &[Registry]) -> anyhow::Result<()> {
+        println!(
+            "{}",
+            format!("Deploy helm chart '{}'", &helmchart.name)
+                .bold()
+                .underline()
+        );
+
         let registry = registries
             .iter()
             .find(|registry| registry.name == helmchart.registry)
@@ -135,9 +143,10 @@ impl Orchestrator {
         // Login failed
         if !helm.login(&registry.helm_repo_url)? {
             println!(
-                r###"Cannot login to helm repo '{}'.
-e.g. Harbor in combination with OIDC providers forces you to relogin to have valid credentials.
-Skip further deployment..."###,
+                r###"Cannot login to helm repo '{}'. Skip further deployment:
+
+Your credentials might be wrong or the credentials rely on some OIDC mechanism and your session is expired.
+e.g. Harbor in combination with OIDC providers forces you to relogin to have valid credentials."###,
                 &registry.helm_repo_url
             );
         } else {
@@ -151,6 +160,8 @@ Skip further deployment..."###,
                 );
             }
         }
+
+        println!();
 
         Ok(())
     }

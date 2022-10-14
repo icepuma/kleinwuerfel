@@ -2,6 +2,7 @@ use std::fs;
 
 use clap::Parser;
 use cli::{Options, SubCommand};
+use colored::Colorize;
 
 use crate::{model::Configuration, orchestrator::Orchestrator};
 
@@ -25,11 +26,15 @@ fn main() -> anyhow::Result<()> {
 
     match options.subcommand {
         SubCommand::Start => {
+            println!("{}", "Bootstrap minikube".bold().underline());
+
             if let Ok(true) = orchestrator.is_running() {
                 println!("Minikube is already running! Skip start sequence...");
             } else {
                 orchestrator.start()?;
             }
+
+            println!();
 
             let registries = configuration.registry.unwrap_or_default();
 
