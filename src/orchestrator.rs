@@ -8,6 +8,7 @@ use anyhow::Ok;
 use colored::Colorize;
 use lazy_static::lazy_static;
 use regex::Regex;
+use url::Url;
 use which::which;
 
 pub struct Orchestrator {
@@ -142,12 +143,22 @@ impl Orchestrator {
 
         // Login failed
         if !helm.login(&registry.helm_repo_url)? {
+            let relogin_url = Url::parse(&registry.helm_repo_url)?;
+
             println!(
                 r###"Cannot login to helm repo '{}'. Skip further deployment:
 
 Your credentials might be wrong or the credentials rely on some OIDC mechanism and your session is expired.
-e.g. Harbor in combination with OIDC providers forces you to relogin to have valid credentials."###,
-                &registry.helm_repo_url
+e.g. Harbor in combination with OIDC providers forces you to relogin to have valid credentials.
+
+Maybe {} is the URL where you can relogin.
+"###,
+                &registry.helm_repo_url,
+                &format!(
+                    "{}://{}",
+                    &relogin_url.scheme(),
+                    &relogin_url.host_str().unwrap_or_default()
+                ),
             );
         } else {
             helm.add_repo(&helmchart.repo, &registry.helm_repo_url)?;
