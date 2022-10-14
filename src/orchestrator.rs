@@ -5,7 +5,8 @@ use std::{
 
 use crate::{
     helm::Helm,
-    model::{Configuration, Helmchart, Minikube, Registry},
+    minikube::Minikube,
+    model::{Configuration, Helmchart, Registry},
 };
 use anyhow::Ok;
 use colored::Colorize;
@@ -14,7 +15,7 @@ use regex::Regex;
 use url::Url;
 
 pub struct Orchestrator {
-    minikube: Option<Minikube>,
+    configuration: Configuration,
     minikube_binary_path: PathBuf,
     helm_binary_path: PathBuf,
     kubectl_binary_path: PathBuf,
@@ -32,7 +33,7 @@ impl Orchestrator {
         kubectl_binary_path: PathBuf,
     ) -> Orchestrator {
         Orchestrator {
-            minikube: configuration.minikube.as_ref().cloned(),
+            configuration: configuration.to_owned(),
             minikube_binary_path,
             helm_binary_path,
             kubectl_binary_path,
@@ -40,67 +41,15 @@ impl Orchestrator {
     }
 
     pub fn start(&self) -> anyhow::Result<()> {
-        let mut arguments: Vec<String> = vec![];
-        arguments.push("start".to_string());
-
-        if let Some(minikube) = &self.minikube {
-            let cpus = minikube
-                .cpus
-                .map(|cpu| cpu.to_string())
-                .unwrap_or_else(|| "4".to_string());
-            let memory = minikube
-                .memory
-                .map(|memory| memory.to_string())
-                .unwrap_or_else(|| "8192".to_string());
-
-            arguments.push("--cpus".to_string());
-            arguments.push(cpus);
-            arguments.push("--memory".to_string());
-            arguments.push(memory);
-        } else {
-            arguments.push("--cpus".to_string());
-            arguments.push("4".to_string());
-            arguments.push("--memory".to_string());
-            arguments.push("8192".to_string());
-        }
-
-        Command::new(&self.minikube_binary_path)
-            .args(&arguments)
-            .spawn()?
-            .wait()?;
-
-        if let Some(minikube_config) = &self.minikube {
-            for addon in &minikube_config.addons {
-                Command::new(&self.minikube_binary_path)
-                    .arg("addons")
-                    .arg("enable")
-                    .arg(addon)
-                    .spawn()?
-                    .wait()?;
-            }
-        }
-
-        Ok(())
+        Minikube::new(&self.configuration, &self.minikube_binary_path).start()
     }
 
     pub fn cleanup(&self) -> anyhow::Result<()> {
-        Command::new(&self.minikube_binary_path)
-            .arg("delete")
-            .spawn()?
-            .wait()?;
-
-        Ok(())
+        Minikube::new(&self.configuration, &self.minikube_binary_path).cleanup()
     }
 
     pub fn is_running(&self) -> anyhow::Result<bool> {
-        let status = Command::new(&self.minikube_binary_path)
-            .arg("status")
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()?
-            .wait_with_output()?;
-
-        Ok(status.status.success())
+        Minikube::new(&self.configuration, &self.minikube_binary_path).is_running()
     }
 
     fn extract_env_var_name(&self, input: &str) -> anyhow::Result<String> {

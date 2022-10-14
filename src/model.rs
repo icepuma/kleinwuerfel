@@ -1,6 +1,6 @@
 use serde_derive::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Registry {
     pub name: String,
     pub url: String,
@@ -9,7 +9,7 @@ pub struct Registry {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Helmchart {
     pub name: String,
     pub registry: String,
@@ -28,7 +28,7 @@ pub struct Minikube {
     pub addons: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Configuration {
     pub minikube: Option<Minikube>,
     pub registry: Option<Vec<Registry>>,

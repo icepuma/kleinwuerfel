@@ -9,6 +9,7 @@ use crate::{helm::Helm, model::Configuration, orchestrator::Orchestrator};
 
 mod cli;
 mod helm;
+mod minikube;
 mod model;
 mod orchestrator;
 
@@ -21,7 +22,7 @@ fn main() -> anyhow::Result<()> {
         )
     })?;
 
-    let minikube_binary_path = which("minikube2").map_err(|_| {
+    let minikube_binary_path = which("minikube").map_err(|_| {
         anyhow::anyhow!("The binary 'minikube' is missing in your $PATH. Installation guide: https://minikube.sigs.k8s.io/docs/start/")
     })?;
 
