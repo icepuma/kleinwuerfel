@@ -3,7 +3,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(author, about, version)]
 pub struct Options {
-    #[arg(short, long, default_value = "kleinwuerfel.toml")]
+    #[arg(short, long, default_value = "./kleinwuerfel.toml")]
     pub config: String,
 
     #[clap(subcommand)]
