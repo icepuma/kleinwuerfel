@@ -57,6 +57,8 @@ imageRegistry:
 helm_chart_repo = "helm-chart-repo-1"
 # Is combined for "helm upgrade ... helm-chart-1 helm-chart-repo-1/helm-chart-1"
 name = "helm-chart-1"
+# Port fowarding
+ports = [8080, 9999]
 
 [[helmchart]]
 # Reference to name of [[helm_chart_repo]] block
@@ -80,6 +82,5 @@ kleinwuerfel cleanup
 ```
 
 ## Ideas
-* Port forwarding for individual helm charts
 * Better error handling
 * More testing

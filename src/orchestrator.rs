@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use crate::{
     helm::Helm,
-    kubectl::Kubectl,
     minikube::Minikube,
     model::{Configuration, HelmChartRepo, Helmchart},
 };
@@ -14,21 +13,18 @@ pub struct Orchestrator {
     configuration: Configuration,
     minikube_binary_path: PathBuf,
     helm_binary_path: PathBuf,
-    kubectl_binary_path: PathBuf,
 }
 
 impl Orchestrator {
     pub fn new(
         configuration: &Configuration,
-        minikube_binary_path: PathBuf,
-        helm_binary_path: PathBuf,
-        kubectl_binary_path: PathBuf,
+        minikube_binary_path: &PathBuf,
+        helm_binary_path: &PathBuf,
     ) -> Orchestrator {
         Orchestrator {
             configuration: configuration.to_owned(),
-            minikube_binary_path,
-            helm_binary_path,
-            kubectl_binary_path,
+            minikube_binary_path: minikube_binary_path.to_owned(),
+            helm_binary_path: helm_binary_path.to_owned(),
         }
     }
 
@@ -90,14 +86,6 @@ Maybe {} is the URL where you can relogin.
         } else {
             helm.add_repo(&helm_chart_repo.name, &helm_chart_repo.url)?;
             helm.upgrade(&helmchart.helm_chart_repo, &helmchart.name)?;
-
-            if !helmchart.ports.is_empty() {
-                let _kubectl = Kubectl::new(&self.kubectl_binary_path);
-
-                println!(
-                    "Port forwarding is currently disabled, but will be part of a future release!"
-                );
-            }
         }
 
         println!();
