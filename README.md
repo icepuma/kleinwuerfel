@@ -26,38 +26,43 @@ Opinionated command line tool to interact with [minikube](https://github.com/kub
 ### Config file
 ```toml
 [minikube]
+# Amount of CPUs
 cpus = 4
+
+# Memory in MB
 memory = 8192
 
-[[container_registry]]
-name = "registry-1"
-url = "some.registry.url"
-username = "${env.HARBOR_USERNAME}"
-password = "${env.HARBOR_SECRET}"
-
 [[helm_chart_repo]]
+# Name to be referenced in [[helmchart]] blocks
 name = "helm-chart-repo-1"
+
+# URL for "helm repo add ..." and "helm login" when "username" and "password" are both set
 url = "some.registry.url/chartrepo"
+
+# Optional
 username = "${env.HARBOR_USERNAME}"
+
+# Optional
 password = "${env.HARBOR_SECRET}"
 
+# Optional - will be piped to "helm upgrade ... -f <values>"
+values = """
+imageRegistry:
+  username: '${env.HARBOR_USERNAME}'
+  password: '${env.HARBOR_SECRET}'
+"""
+
 [[helmchart]]
+# Reference to name of [[helm_chart_repo]] block
+helm_chart_repo = "helm-chart-repo-1"
+# Is combined for "helm upgrade ... helm-chart-1 helm-chart-repo-1/helm-chart-1"
 name = "helm-chart-1"
-container_registry = "registry-1"
-helm_chart_repo = "helm-chart-repo-1"
-repo = "chart-repo"
 
 [[helmchart]]
+# Reference to name of [[helm_chart_repo]] block
+helm_chart_repo = "helm-chart-repo-1"
+# Is combined for "helm upgrade ... helm-chart-1 helm-chart-repo-1/helm-chart-2"
 name = "helm-chart-2"
-container_registry = "registry-1"
-helm_chart_repo = "helm-chart-repo-1"
-repo = "chart-repo"
-
-[[helmchart]]
-name = "helm-chart-3"
-container_registry = "registry-1"
-helm_chart_repo = "helm-chart-repo-1"
-repo = "some-different-chart-repo"
 ```
 
 ### Start (start minikube and deploy helm charts)
