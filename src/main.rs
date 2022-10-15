@@ -40,7 +40,7 @@ fn main() -> anyhow::Result<()> {
     let orchestrator = Orchestrator::new(&configuration, &minikube_binary_path, &helm_binary_path);
 
     match options.subcommand {
-        SubCommand::Start => {
+        SubCommand::Up => {
             println!("{}", "Bootstrap minikube".bold().underline());
 
             if let Ok(true) = orchestrator.is_running() {
@@ -72,7 +72,7 @@ fn main() -> anyhow::Result<()> {
                 kubectl.port_forwarding(helmcharts)?;
             }
         }
-        SubCommand::Cleanup => {
+        SubCommand::Down => {
             orchestrator.cleanup()?;
         }
     }

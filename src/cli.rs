@@ -12,9 +12,9 @@ pub struct Options {
 
 #[derive(Subcommand, Debug)]
 pub enum SubCommand {
-    /// Start with all services
-    Start,
+    /// Spin up the minikube environment and deploy the given set of helmcharts
+    Up,
 
-    /// Cleanup all the things
-    Cleanup,
+    /// Shut down minikube environment
+    Down,
 }

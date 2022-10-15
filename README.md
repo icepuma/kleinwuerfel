@@ -67,18 +67,18 @@ helm_chart_repo = "helm-chart-repo-1"
 name = "helm-chart-2"
 ```
 
-### Start (start minikube and deploy helm charts)
+### Up (start minikube and deploy helm charts)
 * If `minikube status` exits with `0`, we assume that it is already running and skip the `minikube start` part
 
 ```bash
-kleinwuerfel start
+kleinwuerfel up
 ```
 
-### Cleanup
+### Down
 * Calls `minikube delete` right now
 
 ```bash
-kleinwuerfel cleanup
+kleinwuerfel down
 ```
 
 ## Ideas
