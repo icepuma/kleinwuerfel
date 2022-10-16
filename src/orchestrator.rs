@@ -95,6 +95,12 @@ Maybe {} is the URL where you can relogin.
         Ok(())
     }
 
+    pub fn list_deployed_helmcharts(&self) -> anyhow::Result<()> {
+        println!("{}", "Deployed helm charts".bold().underline());
+
+        Helm::list()
+    }
+
     pub fn port_forward_all_helmcharts(&self) -> anyhow::Result<()> {
         self.kubectl.port_forward_all_helmcharts()
     }

@@ -5,7 +5,7 @@ use cli::{Options, SubCommand};
 use colored::Colorize;
 use which::which;
 
-use crate::{helm::Helm, model::Configuration, orchestrator::Orchestrator};
+use crate::{model::Configuration, orchestrator::Orchestrator};
 
 mod cli;
 mod helm;
@@ -62,12 +62,11 @@ fn main() -> anyhow::Result<()> {
                 for helm_chart in helmcharts {
                     orchestrator.deploy(helm_chart, helm_chart_repos)?;
                 }
+            } else {
+                println!("No helmcharts to deploy.")
             }
 
-            println!("{}", "Deployed helm charts".bold().underline());
-
-            Helm::list()?;
-
+            orchestrator.list_deployed_helmcharts()?;
             orchestrator.port_forward_all_helmcharts()?;
         }
         SubCommand::Down => {
