@@ -1,6 +1,6 @@
 [package]
 name = "kleinwuerfel"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 authors = ["Stefan Ruzitschka <stefan@icepuma.dev>"]
 description = "Tool to interact with minikube and deploy a set of helm charts."
