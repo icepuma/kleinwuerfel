@@ -10,9 +10,8 @@ use colored::Colorize;
 use url::Url;
 
 pub struct Orchestrator {
-    configuration: Configuration,
-    minikube_binary_path: PathBuf,
     helm_binary_path: PathBuf,
+    minikube: Minikube,
 }
 
 impl Orchestrator {
@@ -22,22 +21,21 @@ impl Orchestrator {
         helm_binary_path: &PathBuf,
     ) -> Orchestrator {
         Orchestrator {
-            configuration: configuration.to_owned(),
-            minikube_binary_path: minikube_binary_path.to_owned(),
             helm_binary_path: helm_binary_path.to_owned(),
+            minikube: Minikube::new(configuration, minikube_binary_path),
         }
     }
 
     pub fn start(&self) -> anyhow::Result<()> {
-        Minikube::new(&self.configuration, &self.minikube_binary_path).start()
+        self.minikube.start()
     }
 
     pub fn cleanup(&self) -> anyhow::Result<()> {
-        Minikube::new(&self.configuration, &self.minikube_binary_path).cleanup()
+        self.minikube.cleanup()
     }
 
     pub fn is_running(&self) -> anyhow::Result<bool> {
-        Minikube::new(&self.configuration, &self.minikube_binary_path).is_running()
+        self.minikube.is_running()
     }
 
     pub fn deploy(
