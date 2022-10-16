@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use crate::{
     helm::Helm,
+    kubectl::Kubectl,
     minikube::Minikube,
     model::{Configuration, HelmChartRepo, Helmchart},
 };
@@ -12,6 +13,7 @@ use url::Url;
 pub struct Orchestrator {
     helm_binary_path: PathBuf,
     minikube: Minikube,
+    kubectl: Kubectl,
 }
 
 impl Orchestrator {
@@ -19,10 +21,12 @@ impl Orchestrator {
         configuration: &Configuration,
         minikube_binary_path: &PathBuf,
         helm_binary_path: &PathBuf,
+        kubectl_binary_path: &PathBuf,
     ) -> Orchestrator {
         Orchestrator {
             helm_binary_path: helm_binary_path.to_owned(),
             minikube: Minikube::new(configuration, minikube_binary_path),
+            kubectl: Kubectl::new(configuration, kubectl_binary_path),
         }
     }
 
@@ -89,5 +93,9 @@ Maybe {} is the URL where you can relogin.
         println!();
 
         Ok(())
+    }
+
+    pub fn port_forward_all_helmcharts(&self) -> anyhow::Result<()> {
+        self.kubectl.port_forward_all_helmcharts()
     }
 }

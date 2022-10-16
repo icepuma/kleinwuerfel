@@ -5,23 +5,40 @@ use std::{
     thread,
 };
 
+use anyhow::Ok;
+use colored::Colorize;
 use crossbeam_channel::{bounded, Receiver};
 
-use crate::model::Helmchart;
+use crate::model::{Configuration, Helmchart};
 
 #[derive(Debug, Clone)]
 pub struct Kubectl {
+    configuration: Configuration,
     kubectl_binary_path: PathBuf,
 }
 
 impl Kubectl {
-    pub fn new(kubectl_binary_path: &PathBuf) -> Self {
+    pub fn new(configuration: &Configuration, kubectl_binary_path: &PathBuf) -> Self {
         Kubectl {
+            configuration: configuration.to_owned(),
             kubectl_binary_path: kubectl_binary_path.to_owned(),
         }
     }
 
-    pub fn port_forwarding(&self, helmcharts: &[Helmchart]) -> anyhow::Result<()> {
+    pub fn port_forward_all_helmcharts(&self) -> anyhow::Result<()> {
+        if let Some(helmcharts) = &self.configuration.helmchart {
+            println!();
+            println!("{}", "Forwarding ports".bold().underline());
+            println!("Press Ctrl+C to stop the port forwarding.");
+            println!();
+
+            self.port_forwarding(helmcharts)?;
+        }
+
+        Ok(())
+    }
+
+    fn port_forwarding(&self, helmcharts: &[Helmchart]) -> anyhow::Result<()> {
         let mut handles = vec![];
 
         let (sender, receiver) = bounded(0);
@@ -31,7 +48,7 @@ impl Kubectl {
         ctrlc::set_handler(move || {
             for _ in 0..amount_of_receivers {
                 match sender.send(()) {
-                    Ok(_) => {}
+                    std::result::Result::Ok(_) => {}
                     Err(err) => println!("{}", err),
                 }
             }
@@ -45,13 +62,13 @@ impl Kubectl {
             let receiver = receiver.clone();
 
             match shared_self.lock() {
-                Ok(shared_self) => {
+                std::result::Result::Ok(shared_self) => {
                     let self_clone = shared_self.clone();
                     let helmchart = helmchart.clone();
 
                     handles.push(thread::spawn(move || {
                         match self_clone.port_forward(&helmchart, &receiver) {
-                            Ok(_) => {}
+                            std::result::Result::Ok(_) => {}
                             Err(err) => println!("{}", err),
                         }
                     }));
@@ -62,7 +79,7 @@ impl Kubectl {
 
         for handle in handles {
             match handle.join() {
-                Ok(_) => {}
+                std::result::Result::Ok(_) => {}
                 Err(_) => println!("Cannot join child thread"),
             }
         }

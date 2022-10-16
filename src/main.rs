@@ -5,7 +5,7 @@ use cli::{Options, SubCommand};
 use colored::Colorize;
 use which::which;
 
-use crate::{helm::Helm, kubectl::Kubectl, model::Configuration, orchestrator::Orchestrator};
+use crate::{helm::Helm, model::Configuration, orchestrator::Orchestrator};
 
 mod cli;
 mod helm;
@@ -37,7 +37,12 @@ fn main() -> anyhow::Result<()> {
 
     let configuration = toml::from_str::<Configuration>(&content)?;
 
-    let orchestrator = Orchestrator::new(&configuration, &minikube_binary_path, &helm_binary_path);
+    let orchestrator = Orchestrator::new(
+        &configuration,
+        &minikube_binary_path,
+        &helm_binary_path,
+        &kubectl_binary_path,
+    );
 
     match options.subcommand {
         SubCommand::Up => {
@@ -63,14 +68,7 @@ fn main() -> anyhow::Result<()> {
 
             Helm::list()?;
 
-            let kubectl = Kubectl::new(&kubectl_binary_path);
-
-            if let Some(helmcharts) = &configuration.helmchart {
-                println!();
-                println!("{}", "Forwarding ports".bold().underline());
-
-                kubectl.port_forwarding(helmcharts)?;
-            }
+            orchestrator.port_forward_all_helmcharts()?;
         }
         SubCommand::Down => {
             orchestrator.cleanup()?;
