@@ -14,6 +14,12 @@ Opinionated command line tool to interact with [minikube](https://github.com/kub
 
 </div>
 
+## Prerequisites
+As `kleinwuerfel` interacts with other command line tools, you have install:
+* `minikube`
+* `helm`
+* `kubectl`
+
 ## Installation
 * cargo
   ```bash
