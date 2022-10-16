@@ -39,8 +39,6 @@ impl Kubectl {
     }
 
     fn port_forwarding(&self, helmcharts: &[Helmchart]) -> anyhow::Result<()> {
-        let mut handles = vec![];
-
         let (sender, receiver) = bounded(0);
 
         let amount_of_receivers = helmcharts.len();
@@ -66,21 +64,14 @@ impl Kubectl {
                     let self_clone = shared_self.clone();
                     let helmchart = helmchart.clone();
 
-                    handles.push(thread::spawn(move || {
-                        match self_clone.port_forward(&helmchart, &receiver) {
+                    thread::spawn(
+                        move || match self_clone.port_forward(&helmchart, &receiver) {
                             std::result::Result::Ok(_) => {}
                             Err(err) => println!("{}", err),
-                        }
-                    }));
+                        },
+                    );
                 }
                 Err(err) => println!("{}", err),
-            }
-        }
-
-        for handle in handles {
-            match handle.join() {
-                std::result::Result::Ok(_) => {}
-                Err(_) => println!("Cannot join child thread"),
             }
         }
 
