@@ -77,7 +77,7 @@ name = "helm-chart-2"
 * If `minikube status` exits with `0`, we assume that it is already running and skip the `minikube start` part
 
 ```bash
-kleinwuerfel up
+kleinwuerfel up [--no-deploy]
 ```
 
 ### Down

@@ -13,8 +13,15 @@ pub struct Options {
 #[derive(Subcommand, Debug)]
 pub enum SubCommand {
     /// Spin up the minikube environment and deploy the given set of helmcharts
-    Up,
+    Up(Up),
 
     /// Shut down minikube environment
     Down,
+}
+
+#[derive(Parser, Debug)]
+pub struct Up {
+    /// Don't deploy given helm charts and just start with the latest state
+    #[arg(short, long)]
+    pub no_deploy: bool,
 }

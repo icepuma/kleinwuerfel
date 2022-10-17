@@ -45,7 +45,7 @@ fn main() -> anyhow::Result<()> {
     );
 
     match options.subcommand {
-        SubCommand::Up => {
+        SubCommand::Up(arguments) => {
             println!("{}", "Bootstrap minikube".bold().underline());
 
             if let Ok(true) = orchestrator.is_running() {
@@ -58,7 +58,12 @@ fn main() -> anyhow::Result<()> {
 
             let helm_chart_repos = &configuration.helm_chart_repo.unwrap_or_default();
 
-            if let Some(helmcharts) = &configuration.helmchart {
+            println!("{}", "Deployment".bold().underline());
+
+            if arguments.no_deploy {
+                println!("Disabled via '--no-deploy'");
+                println!();
+            } else if let Some(helmcharts) = &configuration.helmchart {
                 for helm_chart in helmcharts {
                     orchestrator.deploy(helm_chart, helm_chart_repos)?;
                 }
