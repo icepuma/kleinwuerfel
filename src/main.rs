@@ -58,10 +58,9 @@ fn main() -> anyhow::Result<()> {
 
             let helm_chart_repos = &configuration.helm_chart_repo.unwrap_or_default();
 
-            println!("{}", "Deployment".bold().underline());
-
             if arguments.no_deploy {
-                println!("Disabled via '--no-deploy'");
+                println!("{}", "Deployment".bold().underline());
+                println!("Disabled via '--no-deploy'!");
                 println!();
             } else if let Some(helmcharts) = &configuration.helmchart {
                 for helm_chart in helmcharts {
