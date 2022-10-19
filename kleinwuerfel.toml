@@ -9,3 +9,4 @@ url = "https://grafana.github.io/helm-charts"
 [[helmchart]]
 helm_chart_repo = "grafana"
 name = "grafana"
+ports = [80]

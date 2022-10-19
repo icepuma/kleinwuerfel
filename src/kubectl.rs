@@ -80,12 +80,7 @@ impl Kubectl {
         Ok(())
     }
 
-    fn port_forward(&self, helmchart: &Helmchart, receiver: &Receiver<()>) -> anyhow::Result<()> {
-        if helmchart.ports.is_empty() {
-            return Ok(());
-        }
-
-        // query namespace
+    fn resolve_namespace(&self, helmchart: &Helmchart) -> anyhow::Result<Option<String>> {
         let namespace_output = Command::new(&self.kubectl_binary_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -101,6 +96,36 @@ impl Kubectl {
             .collect::<Vec<&str>>()
             .first()
         {
+            return Ok(Some(namespace.to_string()));
+        } else {
+            let service_output = Command::new(&self.kubectl_binary_path)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .arg("get")
+            .arg("services")
+            .arg("-o")
+            .arg(format!("jsonpath={{.items[?(@.metadata.annotations.meta\\.helm\\.sh/release-name==\"{}\")].metadata.namespace}}", &helmchart.name))
+            .spawn()?
+            .wait_with_output()?;
+
+            if let Some(namespace) = String::from_utf8(service_output.stdout)?
+                .split_whitespace()
+                .collect::<Vec<&str>>()
+                .first()
+            {
+                return Ok(Some(namespace.to_string()));
+            }
+        }
+
+        Ok(None)
+    }
+
+    fn port_forward(&self, helmchart: &Helmchart, receiver: &Receiver<()>) -> anyhow::Result<()> {
+        if helmchart.ports.is_empty() {
+            return Ok(());
+        }
+
+        if let Some(namespace) = self.resolve_namespace(helmchart)? {
             // query service
             let service_output = Command::new(&self.kubectl_binary_path)
             .stdout(Stdio::piped())
@@ -122,7 +147,7 @@ impl Kubectl {
                 let mut arguments = vec![];
                 arguments.push("port-forward".to_string());
                 arguments.push("--namespace".to_string());
-                arguments.push(namespace.to_string());
+                arguments.push(namespace);
                 arguments.push(format!("service/{}", service));
 
                 for port in &helmchart.ports {
