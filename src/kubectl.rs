@@ -98,6 +98,7 @@ impl Kubectl {
         {
             return Ok(Some(namespace.to_string()));
         } else {
+            // this is for services deployed in "default" namespace
             let service_output = Command::new(&self.kubectl_binary_path)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
