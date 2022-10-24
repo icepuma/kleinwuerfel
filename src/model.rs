@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use serde_derive::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -16,6 +18,9 @@ pub struct Helmchart {
     pub name: String,
 
     #[serde(default)]
+    pub values: BTreeMap<String, String>,
+
+    #[serde(default)]
     pub ports: Vec<u16>,
 }
 
@@ -31,6 +36,9 @@ pub struct Minikube {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Configuration {
     pub minikube: Option<Minikube>,
+
+    #[serde(default)]
+    pub default_values: BTreeMap<String, String>,
     pub helm_chart_repo: Option<Vec<HelmChartRepo>>,
     pub helmchart: Option<Vec<Helmchart>>,
 }

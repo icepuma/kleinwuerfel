@@ -11,6 +11,7 @@ use colored::Colorize;
 use url::Url;
 
 pub struct Orchestrator {
+    configuration: Configuration,
     helm_binary_path: PathBuf,
     minikube: Minikube,
     kubectl: Kubectl,
@@ -24,6 +25,7 @@ impl Orchestrator {
         kubectl_binary_path: &PathBuf,
     ) -> Orchestrator {
         Orchestrator {
+            configuration: configuration.to_owned(),
             helm_binary_path: helm_binary_path.to_owned(),
             minikube: Minikube::new(configuration, minikube_binary_path),
             kubectl: Kubectl::new(configuration, kubectl_binary_path),
@@ -64,7 +66,11 @@ impl Orchestrator {
                 )
             })?;
 
-        let helm = Helm::new(helm_chart_repo, &self.helm_binary_path);
+        let helm = Helm::new(
+            helm_chart_repo,
+            &self.configuration.default_values,
+            &self.helm_binary_path,
+        );
 
         // Login failed
         if !helm.login(&helm_chart_repo.url)? {
@@ -87,7 +93,7 @@ Maybe {} is the URL where you can relogin.
             );
         } else {
             helm.add_repo(&helm_chart_repo.name, &helm_chart_repo.url)?;
-            helm.upgrade(&helmchart.helm_chart_repo, &helmchart.name)?;
+            helm.upgrade(&helmchart.helm_chart_repo, helmchart)?;
         }
 
         println!();
