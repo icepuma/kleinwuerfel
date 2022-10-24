@@ -38,6 +38,11 @@ cpus = 4
 # Memory in MB
 memory = 8192
 
+# Optional -> added via --set to each "helm upgrade"
+[default_values]
+"imageRegistry.username" = "${env.HARBOR_USERNAME}"
+"imageRegistry.password" = "${env.HARBOR_SECRET}"
+
 [[helm_chart_repo]]
 # Name to be referenced in [[helmchart]] blocks
 name = "helm-chart-repo-1"
@@ -51,13 +56,6 @@ username = "${env.HARBOR_USERNAME}"
 # Optional
 password = "${env.HARBOR_SECRET}"
 
-# Optional - will be piped to "helm upgrade ... -f <values>"
-values = """
-imageRegistry:
-  username: '${env.HARBOR_USERNAME}'
-  password: '${env.HARBOR_SECRET}'
-"""
-
 [[helmchart]]
 # Reference to name of [[helm_chart_repo]] block
 helm_chart_repo = "helm-chart-repo-1"
@@ -65,6 +63,10 @@ helm_chart_repo = "helm-chart-repo-1"
 name = "helm-chart-1"
 # Port fowarding
 ports = [8080, 9999]
+
+# Optional -> added via --set to "helm upgrade". Overrides "default_values"
+[values]
+"some.additional.value" = "true"
 
 [[helmchart]]
 # Reference to name of [[helm_chart_repo]] block
