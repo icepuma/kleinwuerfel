@@ -81,41 +81,23 @@ impl Kubectl {
     }
 
     fn resolve_namespace(&self, helmchart: &Helmchart) -> anyhow::Result<Option<String>> {
-        let namespace_output = Command::new(&self.kubectl_binary_path)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .arg("get")
-        .arg("namespaces")
-        .arg("-o")
-        .arg(format!("jsonpath={{.items[?(@.metadata.annotations.meta\\.helm\\.sh/release-name==\"{}\")].metadata.name}}", &helmchart.name))
-        .spawn()?
-        .wait_with_output()?;
-
-        if let Some(namespace) = String::from_utf8(namespace_output.stdout)?
-            .split_whitespace()
-            .collect::<Vec<&str>>()
-            .first()
-        {
-            return Ok(Some(namespace.to_string()));
-        } else {
-            // this is for services deployed in "default" namespace
-            let service_output = Command::new(&self.kubectl_binary_path)
+        let service_output = Command::new(&self.kubectl_binary_path)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .arg("get")
             .arg("services")
+            .arg("--all-namespaces")
             .arg("-o")
             .arg(format!("jsonpath={{.items[?(@.metadata.annotations.meta\\.helm\\.sh/release-name==\"{}\")].metadata.namespace}}", &helmchart.name))
             .spawn()?
             .wait_with_output()?;
 
-            if let Some(namespace) = String::from_utf8(service_output.stdout)?
-                .split_whitespace()
-                .collect::<Vec<&str>>()
-                .first()
-            {
-                return Ok(Some(namespace.to_string()));
-            }
+        if let Some(namespace) = String::from_utf8(service_output.stdout)?
+            .split_whitespace()
+            .collect::<Vec<&str>>()
+            .first()
+        {
+            return Ok(Some(namespace.to_string()));
         }
 
         Ok(None)
