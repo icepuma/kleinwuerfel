@@ -63,6 +63,10 @@ fn main() -> anyhow::Result<()> {
                 println!("Disabled via '--no-deploy'!");
                 println!();
             } else if let Some(helmcharts) = &configuration.helmchart {
+                for helm_chart_repo in helm_chart_repos {
+                    orchestrator.add_helm_chart_repo(helm_chart_repo)?;
+                }
+
                 for helm_chart in helmcharts {
                     orchestrator.deploy(helm_chart, helm_chart_repos)?;
                 }

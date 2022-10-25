@@ -98,14 +98,14 @@ impl Helm {
         Ok(status.status.success())
     }
 
-    pub fn add_repo(&self, chart_repo: &String, helm_repo_url: &String) -> anyhow::Result<()> {
+    pub fn add_repo(&self, helm_chart_repo: &HelmChartRepo) -> anyhow::Result<()> {
         let mut arguments = self.initial_arguments()?;
 
         arguments.push("repo".to_string());
         arguments.push("add".to_string());
         arguments.push("--force-update".to_string());
-        arguments.push(chart_repo.to_string());
-        arguments.push(helm_repo_url.to_string());
+        arguments.push(helm_chart_repo.name.to_string());
+        arguments.push(helm_chart_repo.url.to_string());
 
         Command::new(self.helm_binary_path.as_path())
             .args(&arguments)

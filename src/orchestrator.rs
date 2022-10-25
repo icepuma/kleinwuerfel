@@ -44,6 +44,48 @@ impl Orchestrator {
         self.minikube.is_running()
     }
 
+    pub fn add_helm_chart_repo(&self, helm_chart_repo: &HelmChartRepo) -> anyhow::Result<()> {
+        println!(
+            "{}",
+            format!("Add helm chart repo '{}'", &helm_chart_repo.name)
+                .bold()
+                .underline()
+        );
+
+        let helm = Helm::new(
+            helm_chart_repo,
+            &self.configuration.default_values,
+            &self.helm_binary_path,
+        );
+
+        // Login failed
+        if !helm.login(&helm_chart_repo.url)? {
+            let relogin_url = Url::parse(&helm_chart_repo.url)?;
+
+            println!(
+                r###"Cannot login to helm repo '{}'. Skip further deployment:
+
+Your credentials might be wrong or the credentials rely on some OIDC mechanism and your session is expired.
+e.g. Harbor in combination with OIDC providers forces you to relogin to have valid credentials.
+
+Maybe {} is the URL where you can relogin.
+"###,
+                &helm_chart_repo.url,
+                &format!(
+                    "{}://{}",
+                    &relogin_url.scheme(),
+                    &relogin_url.host_str().unwrap_or_default()
+                ),
+            );
+        } else {
+            helm.add_repo(helm_chart_repo)?;
+        }
+
+        println!();
+
+        Ok(())
+    }
+
     pub fn deploy(
         &self,
         helmchart: &Helmchart,
@@ -72,29 +114,7 @@ impl Orchestrator {
             &self.helm_binary_path,
         );
 
-        // Login failed
-        if !helm.login(&helm_chart_repo.url)? {
-            let relogin_url = Url::parse(&helm_chart_repo.url)?;
-
-            println!(
-                r###"Cannot login to helm repo '{}'. Skip further deployment:
-
-Your credentials might be wrong or the credentials rely on some OIDC mechanism and your session is expired.
-e.g. Harbor in combination with OIDC providers forces you to relogin to have valid credentials.
-
-Maybe {} is the URL where you can relogin.
-"###,
-                &helm_chart_repo.url,
-                &format!(
-                    "{}://{}",
-                    &relogin_url.scheme(),
-                    &relogin_url.host_str().unwrap_or_default()
-                ),
-            );
-        } else {
-            helm.add_repo(&helm_chart_repo.name, &helm_chart_repo.url)?;
-            helm.upgrade(&helmchart.helm_chart_repo, helmchart)?;
-        }
+        helm.upgrade(&helmchart.helm_chart_repo, helmchart)?;
 
         println!();
 
